@@ -6,7 +6,6 @@ import torchvision.models as tmodels
 import numpy as np
 import utils
 import itertools
-import resnet
 import cPickle as pickle
 import math
 import collections
@@ -139,7 +138,7 @@ class RedWine(nn.Module):
             print 'init must be either glove or clf'
             return
 
-        if args.fix_inp_rep:
+        if args.static_inp:
             for param in self.attr_embedder.parameters():
                 param.requires_grad = False
             for param in self.obj_embedder.parameters():
@@ -233,7 +232,7 @@ class ManifoldModel(nn.Module):
 
         if args.lambda_aux>0:
             self.obj_clf = nn.Linear(args.emb_dim, len(dset.objs))
-            self.attr_clf  nn.Linear(args.emb_dim, len(dset.attrs))
+            self.attr_clf = nn.Linear(args.emb_dim, len(dset.attrs))
 
     def train_forward(self, x):
         img, attr_label, obj_label = x[0], x[1], x[2]
@@ -310,7 +309,7 @@ class LabelEmbedPlus(ManifoldModel):
                 self.obj_emb.weight[idx].data.copy_(torch.from_numpy(weight))
 
         # static inputs
-        if args.fix_inp_rep:
+        if args.static_inp:
             for param in self.attr_emb.parameters():
                 param.requires_grad = False
             for param in self.obj_emb.parameters():
@@ -346,7 +345,7 @@ class AttributeOperator(ManifoldModel):
             antonyms.update({a2:a1 for a1, a2 in antonym_list})
             self.antonyms, self.antonym_list = antonyms, antonym_list
 
-        if args.fix_inp_rep:
+        if args.static_inp:
             for param in self.obj_embedder.parameters():
                 param.requires_grad = False
 

@@ -1,7 +1,7 @@
 import numpy as np
 import tqdm
 import cPickle as pickle
-from data import dataset as dset
+import dataset as dset
 import os
 import utils
 import torch
@@ -92,7 +92,7 @@ def generate_svms():
 def make_svm_tensor():
     subs, vals, size = [], [], (len(dataset.attrs), len(dataset.objs), X.shape[1])
     fullsubs, fullvals = [], []
-    composite_clfs = glob.glob('%s/svm/pair*'%(args.data_dir))
+    composite_clfs = glob.glob('%s/svm/pair*'%args.data_dir)
     print '%d composite classifiers found'%(len(composite_clfs))
     for clf in tqdm.tqdm(composite_clfs):
         _, attr, obj = os.path.basename(clf).split('_')
@@ -111,7 +111,7 @@ def make_svm_tensor():
     subs, vals = np.array(subs), np.array(vals).reshape(-1,1)
     fullsubs, fullvals = np.array(fullsubs), np.ones(len(fullsubs)).reshape(-1,1)
     savedat = {'subs':subs, 'vals':vals, 'size':size, 'fullsubs':fullsubs, 'fullvals':fullvals}
-    scipy.io.savemat('tensor-completion/%s_composite_clfs.mat'%(args.dataset), savedat)
+    scipy.io.savemat('tensor-completion/incomplete/%s.mat'%args.dataset, savedat)
     print subs.shape, vals.shape, size
 
 def evaluate_svms():
@@ -166,7 +166,7 @@ def evaluate_tensorcompletion():
         return composite_clfs, nz_idx, tensor['vals'].squeeze()
 
     # see recon error
-    tr_file = 'tensor-completion/%s_composite_clfs.mat'%(args.dataset)
+    tr_file = 'tensor-completion/incomplete/%s.mat'%args.dataset
     ts_file = args.completed
 
     tr_clfs, tr_nz_idx, tr_vals = parse_tensor(tr_file)

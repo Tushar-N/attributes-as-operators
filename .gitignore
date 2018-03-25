@@ -1,7 +1,8 @@
 *.*~
 *.pkl
 *.t7
-
+*.pyc 
 
 data/
+tensor-completion/
 cv/

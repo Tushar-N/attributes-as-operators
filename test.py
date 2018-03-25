@@ -51,34 +51,6 @@ parser.add_argument('--eval_val_every', type=int, default=20)
 parser.add_argument('--max_epochs', type=int, default=1000)
 args = parser.parse_args()
 
-
-if not os.path.exists(args.cv_dir):
-	os.system('mkdir ' + args.cv_dir)
-utils.save_args(args)
-
-#----------------------------------------------------------------#
-
-def train(epoch):
-
-	model.train()
-
-	train_loss = 0.0
-	for idx, data in tqdm.tqdm(enumerate(trainloader), total=len(trainloader)):
-
-		data = [Variable(d).cuda() for d in data]
-		loss, _ = model(data)
-
-		optimizer.zero_grad()
-		loss.backward()
-		optimizer.step()
-
-		train_loss += loss.data[0]
-
-	train_loss = train_loss/len(trainloader)
-	log_value('train_loss', train_loss, epoch)
-	print 'E: %d | L: %.2E'%(epoch, train_loss)
-
-
 def test(epoch):
 
 	model.eval()
@@ -95,23 +67,9 @@ def test(epoch):
 	accuracies = zip(*accuracies)
 	accuracies = map(torch.mean, map(torch.cat, accuracies))
 	attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc = accuracies
-
-	log_value('test_attr_acc', attr_acc, epoch)
-	log_value('test_obj_acc', obj_acc, epoch)
-	log_value('test_closed_acc', closed_acc, epoch)
-	log_value('test_open_acc', open_acc, epoch)
-	log_value('test_objoracle_acc', objoracle_acc, epoch)
 	print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc)
-
-	if epoch>0 and epoch%args.save_every==0:
-		state_dict = model.state_dict() if not args.parallel else model.module.state_dict()
-		state = {
-			'net': state_dict,
-			'epoch': epoch,
-		}
-		torch.save(state, args.cv_dir+'/ckpt_E_%d_A_%.3f_O_%.3f_Cl_%.3f_Op_%.3f.t7'%(epoch, attr_acc, obj_acc, closed_acc, open_acc))
-
 #----------------------------------------------------------------#
+
 if args.dataset == 'mitstates':
 	DSet = dset.MITStatesActivations
 elif args.dataset == 'zappos':
@@ -125,34 +83,10 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, sh
 model_select = {'visprodNN':models.VisualProductNN, 'redwine':models.RedWine,
 				'labelembed+':models.LabelEmbedPlus, 'attributeop': models.AttributeOperator}
 model = model_select[args.model](trainset, args)
-
-
-if args.model=='attributeop':
-	attr_params = [param for name, param in model.named_parameters() if 'attr_op' in name and param.requires_grad]
-	other_params = [param for name, param in model.named_parameters() if 'attr_op' not in name and param.requires_grad]
-	optim_params = [{'params':attr_params, 'lr':0.1*args.lr}, {'params':other_params}]
-	optimizer = optim.Adam(optim_params, lr=args.lr, weight_decay=args.wd)
-else:
-	params = filter(lambda p: p.requires_grad, model.parameters())
-	optimizer = optim.Adam(params, lr=args.lr, weight_decay=args.wd)
-
-# if args.model=='redwine':
-# 	params = filter(lambda p: p.requires_grad, model.parameters())
-# 	optimizer = optim.SGD(params, lr=0.01, weight_decay=args.wd, momentum=0.9)
-
 model.cuda()
-print model
 
-
-start_epoch = 0
-if args.load is not None:
-	checkpoint = torch.load(args.load)
-	model.load_state_dict(checkpoint['net'])
-	start_epoch = checkpoint['epoch']
-	print 'loaded model from', os.path.basename(args.load)
-
-configure(args.cv_dir+'/log', flush_secs=5)
-for epoch in range(start_epoch, start_epoch+args.max_epochs+1):
-	train(epoch)
-	if epoch%args.eval_val_every==0:
-		test(epoch)
+checkpoint = torch.load(args.load)
+model.load_state_dict(checkpoint['net'])
+start_epoch = checkpoint['epoch']
+print 'loaded model from', os.path.basename(args.load)
+test(0)
