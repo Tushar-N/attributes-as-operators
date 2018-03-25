@@ -72,12 +72,12 @@ def imagenet_transform(phase):
 
 class CompositionDataset(tdata.Dataset):
 
-    def __init__(self, root, split_dir, phase):
+    def __init__(self, root, phase):
         self.root = root
         self.phase = phase
-        self.activ, self.feat_dim = None, None
+        self.feat_dim = None
         self.transform = imagenet_transform(phase)
-        meta_dir = os.path.join(root, split_dir)
+        meta_dir = root+'/compositional-split/'
 
         self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split(meta_dir)
         assert len(set(self.train_pairs)&set(self.test_pairs))==0, 'train and test are not mutually exclusive'
@@ -190,8 +190,8 @@ class CompositionDataset(tdata.Dataset):
 
 class MITStates(CompositionDataset):
 
-    def __init__(self, root, split_dir, phase):
-        super(MITStates, self).__init__(root, split_dir, phase)
+    def __init__(self, root, phase):
+        super(MITStates, self).__init__(root, phase)
         self.img_dir = self.root + '/images/'
 
     # retrieve dataset level info: all images, all attrs, all objs
@@ -229,12 +229,11 @@ class MITStates(CompositionDataset):
 
 class MITStatesActivations(MITStates):
 
-    def __init__(self, root, split_dir, phase, activ='resnet'):
-        super(MITStatesActivations, self).__init__(root, split_dir, phase)
-        self.activ = activ
+    def __init__(self, root, phase):
+        super(MITStatesActivations, self).__init__(root, phase)
 
         # precompute the activations
-        feat_file = 'data/mitstates_%s.h5'%activ
+        feat_file = 'data/mitstates_feats.h5'
         if not os.path.exists(feat_file):
             generate_hdf5(feat_file, self)
 
@@ -252,8 +251,8 @@ class MITStatesActivations(MITStates):
 class UTZappos(CompositionDataset):
 
 
-    def __init__(self, root, split_dir, phase):
-        super(UTZappos, self).__init__(root, split_dir, phase)
+    def __init__(self, root, phase):
+        super(UTZappos, self).__init__(root, phase)
         self.img_dir = self.root + '/images/'
     
     # retrieve dataset level info: all images, all attrs, all objs
@@ -293,11 +292,10 @@ class UTZappos(CompositionDataset):
 
 class UTZapposActivations(UTZappos):
 
-    def __init__(self, root, split_dir, phase, activ='resnet'):
-        super(UTZapposActivations, self).__init__(root, split_dir, phase)
-        self.activ = activ
+    def __init__(self, root, phase):
+        super(UTZapposActivations, self).__init__(root, phase)
 
-        feat_file = 'data/zappos_%s.h5'%activ
+        feat_file = 'data/zappos_feats.h5'
         if not os.path.exists(feat_file):
             generate_hdf5(feat_file, self)
 

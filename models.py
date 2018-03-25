@@ -129,11 +129,11 @@ class RedWine(nn.Module):
         elif args.clf_init:
             for idx, attr in enumerate(dset.attrs):
                 at_id = idx
-                weight = pickle.load(open('%s/%s_%s/attr_%d'%(args.svm_dir, args.dataset, args.activ, at_id))).coef_.squeeze()
+                weight = pickle.load(open('%s/svm/attr_%d'%(args.data_dir, at_id))).coef_.squeeze()
                 self.attr_emb.weight[idx].data.copy_(torch.from_numpy(weight))
             for idx, obj in enumerate(dset.objs):
                 obj_id = idx
-                weight = pickle.load(open('%s/%s_%s/obj_%d'%(args.svm_dir, args.dataset, args.activ, obj_id))).coef_.squeeze()
+                weight = pickle.load(open('%s/svm/obj_%d'%(args.data_dir, obj_id))).coef_.squeeze()
                 self.obj_emb.weight[idx].data.copy_(torch.from_numpy(weight))
         else:
             print 'init must be either glove or clf'
@@ -302,11 +302,11 @@ class LabelEmbedPlus(ManifoldModel):
         elif args.clf_init:
             for idx, attr in enumerate(dset.attrs):
                 at_id = dset.all_attrs.index(attr)
-                weight = pickle.load(open('%s/%s_%s/attr_%d'%(args.svm_dir, args.dataset, args.activ, at_id))).coef_.squeeze()
+                weight = pickle.load(open('%s/svm/attr_%d'%(args.data_dir, at_id))).coef_.squeeze()
                 self.attr_emb.weight[idx].data.copy_(torch.from_numpy(weight))
             for idx, obj in enumerate(dset.objs):
                 obj_id = dset.all_objs.index(obj)
-                weight = pickle.load(open('%s/%s_%s/obj_%d'%(args.svm_dir, args.dataset, args.activ, obj_id))).coef_.squeeze()
+                weight = pickle.load(open('%s/svm/obj_%d'%(args.data_dir, obj_id))).coef_.squeeze()
                 self.obj_emb.weight[idx].data.copy_(torch.from_numpy(weight))
 
         # static inputs

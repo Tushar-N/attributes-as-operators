@@ -1,13 +1,11 @@
-cd data/
-
 # Download the images for each dataset
-wget --show-progress -O mitstates.zip http://wednesday.csail.mit.edu/joseph_result/state_and_transformation/release_dataset.zip
-wget --show-progress -O utzap.zip http://vision.cs.utexas.edu/projects/finegrained/utzap50k/ut-zap50k-images.zip
-wget --show-progress -O attribute-ops-data.tar.gz https://www.cs.utexas.edu/~tushar/attribute-ops/attr-ops.tar.gz
+# wget --show-progress -O attr-ops-data.tar.gz https://www.cs.utexas.edu/~tushar/attribute-ops/attr-ops-data.tar.gz
+wget --show-progress -O data/mitstates.zip http://wednesday.csail.mit.edu/joseph_result/state_and_transformation/release_dataset.zip
+wget --show-progress -O data/utzap.zip http://vision.cs.utexas.edu/projects/finegrained/utzap50k/ut-zap50k-images.zip
 echo "Data downloaded. Extracting files..."
 
-# metadata for each dataset
-# tar -zxvf attribute-ops-data.tar.gz
+# Dataset metadata, pretrained SVMs and features, 
+# tar -zxvf attr-ops-data.tar.gz
 
 # MIT-States
 unzip mitstates.zip 'release_dataset/images/*' -d mit-states/
