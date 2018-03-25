@@ -121,19 +121,19 @@ class RedWine(nn.Module):
         # initialize the weights of the embedders with the svm weights
         if args.glove_init:
             pretrained_weight = load_word_embeddings('data/glove/glove.6B.300d.txt', dset.attrs)
-            self.attr_emb.weight.data.copy_(pretrained_weight)
+            self.attr_embedder.weight.data.copy_(pretrained_weight)
             pretrained_weight = load_word_embeddings('data/glove/glove.6B.300d.txt', dset.objs)
-            self.obj_emb.weight.data.copy_(pretrained_weight)
+            self.obj_embedder.weight.data.copy_(pretrained_weight)
 
         elif args.clf_init:
             for idx, attr in enumerate(dset.attrs):
                 at_id = idx
                 weight = pickle.load(open('%s/svm/attr_%d'%(args.data_dir, at_id))).coef_.squeeze()
-                self.attr_emb.weight[idx].data.copy_(torch.from_numpy(weight))
+                self.attr_embedder.weight[idx].data.copy_(torch.from_numpy(weight))
             for idx, obj in enumerate(dset.objs):
                 obj_id = idx
                 weight = pickle.load(open('%s/svm/obj_%d'%(args.data_dir, obj_id))).coef_.squeeze()
-                self.obj_emb.weight[idx].data.copy_(torch.from_numpy(weight))
+                self.obj_embedder.weight[idx].data.copy_(torch.from_numpy(weight))
         else:
             print 'init must be either glove or clf'
             return
@@ -144,8 +144,9 @@ class RedWine(nn.Module):
             for param in self.obj_embedder.parameters():
                 param.requires_grad = False
         
-    def attr_embedder(self, attrs, objs):
-        attr_wt, obj_wt = self.attr_emb(attrs), self.obj_emb(objs)
+    def compose(self, attrs, objs):
+        attr_wt = self.attr_embedder(attrs)
+        obj_wt = self.obj_embedder(objs)
         inp_wts = torch.cat([attr_wt, obj_wt], 1) # 2D
         composed_clf = self.T(inp_wts)
         return composed_clf
@@ -182,7 +183,7 @@ class RedWine(nn.Module):
         img, attr_label, obj_label = x[0], x[1], x[2]
 
         attrs, objs, match = self.sample(attr_label, obj_label)
-        composed_clf = self.attr_embedder(attrs, objs)
+        composed_clf = self.compose(attrs, objs)
         p = F.sigmoid((img*composed_clf).sum(1))
         loss = F.binary_cross_entropy(p, match)
 
@@ -195,7 +196,7 @@ class RedWine(nn.Module):
         attrs, objs = zip(*self.pairs)
         attrs = Variable(torch.LongTensor(attrs), volatile=True).cuda()
         objs = Variable(torch.LongTensor(objs), volatile=True).cuda()
-        composed_clfs = self.attr_embedder(attrs, objs)
+        composed_clfs = self.compose(attrs, objs)
 
         scores = {}
         for i, (attr, obj) in enumerate(self.pairs):
@@ -239,8 +240,8 @@ class ManifoldModel(nn.Module):
         neg_attrs, neg_objs = x[4], x[5]
 
         img_feat = self.image_embedder(img)
-        positive = self.attr_embedder(attr_label, obj_label)
-        negative = self.attr_embedder(neg_attrs, neg_objs)
+        positive = self.compose(attr_label, obj_label)
+        negative = self.compose(neg_attrs, neg_objs)
         loss = F.triplet_margin_loss(img_feat, positive, negative, margin=self.margin)
 
         # Auxiliary object/attribute prediction loss
@@ -261,7 +262,7 @@ class ManifoldModel(nn.Module):
         attrs, objs = zip(*self.pairs)
         attrs = Variable(torch.LongTensor(attrs), volatile=True).cuda()
         objs = Variable(torch.LongTensor(objs), volatile=True).cuda()
-        attr_embeds = self.attr_embedder(attrs, objs)
+        attr_embeds = self.compose(attrs, objs)
 
         dists = {}
         for i, (attr, obj) in enumerate(self.pairs):
@@ -286,14 +287,14 @@ class LabelEmbedPlus(ManifoldModel):
         self.image_embedder = MLP(dset.feat_dim, args.emb_dim)
 
         input_dim = dset.feat_dim if args.clf_init else args.emb_dim
-        self.attribute_embedder = nn.Embedding(len(dset.attrs), input_dim)
+        self.attr_embedder = nn.Embedding(len(dset.attrs), input_dim)
         self.obj_embedder = nn.Embedding(len(dset.objs), input_dim)
         self.T = MLP(2*input_dim, args.emb_dim, num_layers=args.nlayers)
 
         # init with word embeddings
         if args.glove_init:
             pretrained_weight = load_word_embeddings('data/glove/glove.6B.300d.txt', dset.attrs)
-            self.attribute_embedder.weight.data.copy_(pretrained_weight)
+            self.attr_embedder.weight.data.copy_(pretrained_weight)
             pretrained_weight = load_word_embeddings('data/glove/glove.6B.300d.txt', dset.objs)
             self.obj_embedder.weight.data.copy_(pretrained_weight)
 
@@ -302,7 +303,7 @@ class LabelEmbedPlus(ManifoldModel):
             for idx, attr in enumerate(dset.attrs):
                 at_id = dset.all_attrs.index(attr)
                 weight = pickle.load(open('%s/svm/attr_%d'%(args.data_dir, at_id))).coef_.squeeze()
-                self.attr_emb.weight[idx].data.copy_(torch.from_numpy(weight))
+                self.attr_embedder.weight[idx].data.copy_(torch.from_numpy(weight))
             for idx, obj in enumerate(dset.objs):
                 obj_id = dset.all_objs.index(obj)
                 weight = pickle.load(open('%s/svm/obj_%d'%(args.data_dir, obj_id))).coef_.squeeze()
@@ -310,13 +311,13 @@ class LabelEmbedPlus(ManifoldModel):
 
         # static inputs
         if args.static_inp:
-            for param in self.attr_emb.parameters():
+            for param in self.attr_embedder.parameters():
                 param.requires_grad = False
-            for param in self.obj_emb.parameters():
+            for param in self.obj_embedder.parameters():
                 param.requires_grad = False
 
-    def attr_embedder(self, attrs, objs):
-        inputs = [self.attribute_embedder(attrs), self.obj_embedder(objs)]
+    def compose(self, attrs, objs):
+        inputs = [self.attr_embedder(attrs), self.obj_embedder(objs)]
         inputs = torch.cat(inputs, 1)
         output = self.T(inputs)
         return output
@@ -354,7 +355,7 @@ class AttributeOperator(ManifoldModel):
         out = F.relu(out)
         return out
 
-    def attr_embedder(self, attrs, objs):
+    def compose(self, attrs, objs):
         obj_rep = self.obj_embedder(objs)
         attr_ops = torch.stack([self.attr_ops[attr] for attr in attrs.data])
         embedded_reps = self.apply_ops(attr_ops, obj_rep)
@@ -420,10 +421,10 @@ class AttributeOperator(ManifoldModel):
         # Antonym Consistency
         if self.args.lambda_ant>0:
 
-            select_idx = [i for i in range(x[0].size(0)) if x[1].data[i] in self.antonyms]
+            select_idx = [i for i in range(batch_size) if attr_label.data[i] in self.antonyms]
             if len(select_idx)>0:
                 select_idx = torch.LongTensor(select_idx).cuda()
-                attr_subset = attr_labels[select_idx].data
+                attr_subset = attr_label[select_idx].data
                 antonym_ops = torch.stack([self.attr_ops[self.antonyms[attr]] for attr in attr_subset])
 
                 Ao = anchor[select_idx]

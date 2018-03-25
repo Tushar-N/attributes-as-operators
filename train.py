@@ -104,9 +104,8 @@ def test(epoch):
 	print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc)
 
 	if epoch>0 and epoch%args.save_every==0:
-		state_dict = model.state_dict() if not args.parallel else model.module.state_dict()
 		state = {
-			'net': state_dict,
+			'net': model.state_dict(),
 			'epoch': epoch,
 		}
 		torch.save(state, args.cv_dir+'/ckpt_E_%d_A_%.3f_O_%.3f_Cl_%.3f_Op_%.3f.t7'%(epoch, attr_acc, obj_acc, closed_acc, open_acc))
@@ -142,7 +141,6 @@ else:
 
 model.cuda()
 print model
-
 
 start_epoch = 0
 if args.load is not None:
