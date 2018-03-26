@@ -11,11 +11,11 @@ Attributes as Operators [[arxiv]](https://arxiv.org/pdf/???)
 ## Prerequisites
 The code is written and tested using Python (2.7) and PyTorch (v0.3.0). MATLAB is required for the AnalogousAttr models only.
 
-**Packages**: Install using `pip install -r requirements.txt`
+**Packages**: Install using `pip install -r utils/requirements.txt`
 
-**Datasets and Features**: We include a script to download all the necessary data: images, features and metadata for the two datasets, pretrained SVM classifier weights and tensor completion code. It must be run before training the models.
+**Datasets and Features**: We include a script to download all the necessary data: images, features and metadata for the two datasets, pretrained SVM classifier weights, tensor completion code and pretrained models. It must be run before training the models.
 ```bash
-bash download_data.sh
+bash utils/download_data.sh
 ```
 
 ## Training a model
@@ -39,8 +39,7 @@ matlab -nodisplay -nodesktop -r "try; complete incomplete/mitstates completed/mi
 matlab -nodisplay -nodesktop -r "try; complete incomplete/zappos completed/zappos_100_50.mat 100 50 2; catch; end; quit" > log.log 2> log.err
 ```
  
-More examples to train various kinds of models can be found in `examples.sh`. 
-
+More examples to train various kinds of models can be found in `utils/examples.sh`. 
 
 
 ## Model Evaluation
@@ -60,5 +59,10 @@ python svm.py --dataset zappos --data_dir data/ut-zap50k/ --evaltf --completed t
 
 If you find this repository useful in your own research, please consider citing:
 ```
-???
+@article{?????,
+  title={Attributes as Operators},
+  author={Nagarajan, Tushar and Grauman, Kristen},
+  journal={arXiv preprint arXiv:???},
+  year={2018}
+}
 ```

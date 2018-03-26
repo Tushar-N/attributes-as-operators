@@ -12,7 +12,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch
 import bz2
-import utils
+from utils import utils
 import h5py
 import models
 import itertools

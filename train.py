@@ -16,7 +16,7 @@ import itertools
 import glob
 
 from tensorboard_logger import configure, log_value
-import utils
+from utils import utils
 
 import torch.backends.cudnn as cudnn
 cudnn.benchmark = True

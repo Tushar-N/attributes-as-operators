@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torchvision.models as tmodels
 import numpy as np
-import utils
+from utils import utils
 import itertools
 import cPickle as pickle
 import math
