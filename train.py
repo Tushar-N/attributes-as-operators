@@ -125,8 +125,10 @@ model_select = {'visprodNN':models.VisualProductNN, 'redwine':models.RedWine,
 				'labelembed+':models.LabelEmbedPlus, 'attributeop': models.AttributeOperator}
 model = model_select[args.model](trainset, args)
 
-
-if args.model=='attributeop':
+if args.model=='redwine':
+	params = filter(lambda p: p.requires_grad, model.parameters())
+	optimizer = optim.SGD(params, lr=0.01, weight_decay=args.wd, momentum=0.9)
+elif args.model=='attributeop':
 	attr_params = [param for name, param in model.named_parameters() if 'attr_op' in name and param.requires_grad]
 	other_params = [param for name, param in model.named_parameters() if 'attr_op' not in name and param.requires_grad]
 	optim_params = [{'params':attr_params, 'lr':0.1*args.lr}, {'params':other_params}]
@@ -135,9 +137,6 @@ else:
 	params = filter(lambda p: p.requires_grad, model.parameters())
 	optimizer = optim.Adam(params, lr=args.lr, weight_decay=args.wd)
 
-# if args.model=='redwine':
-# 	params = filter(lambda p: p.requires_grad, model.parameters())
-# 	optimizer = optim.SGD(params, lr=0.01, weight_decay=args.wd, momentum=0.9)
 
 model.cuda()
 print model
