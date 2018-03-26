@@ -1,6 +1,6 @@
 # Attributes as Operators
 
-<!-- ![Attributes as Operators Model](png url) -->
+![Attributes as Operators Model](https://user-images.githubusercontent.com/4995097/37882524-a06c4782-3069-11e8-82b0-1ca80abf80e1.png)
 
 This code implements an embedding learning framework for visual attribute-object composition (e.g. sliced+orange = sliced orange) by treating objects as vectors, and attributes as operators that modify the object vectors to appropriately compose them into a complex concept. Not only does our approach align conceptually with the linguistic role of attributes as modifiers, but it also generalizes to recognize unseen compositions of objects and attributes. Our model recognizes unseen compositions robustly in an open-world setting on two challenging datasets, and can also generalize to compositions where objects themselves were unseen during training.
 
