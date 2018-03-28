@@ -6,7 +6,7 @@ This code implements an embedding learning framework for visual attribute-object
 
 This is the code accompanying the work:  
 Tushar Nagarajan and Kristen Grauman.  
-Attributes as Operators [[arxiv]](https://arxiv.org/pdf/???)
+Attributes as Operators [[arxiv]](https://arxiv.org/pdf/1803.09851.pdf)
 
 ## Prerequisites
 The code is written and tested using Python (2.7) and PyTorch (v0.3.0). MATLAB is required for the AnalogousAttr models only.
@@ -59,10 +59,10 @@ python svm.py --dataset zappos --data_dir data/ut-zap50k/ --evaltf --completed t
 
 If you find this repository useful in your own research, please consider citing:
 ```
-@article{?????,
+@article{nagarajan2018attrop,
   title={Attributes as Operators},
   author={Nagarajan, Tushar and Grauman, Kristen},
-  journal={arXiv preprint arXiv:???},
+  journal={arXiv preprint arXiv:1803.09851},
   year={2018}
 }
 ```
