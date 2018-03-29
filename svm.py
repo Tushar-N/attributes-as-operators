@@ -3,7 +3,7 @@ import tqdm
 import cPickle as pickle
 import dataset as dset
 import os
-import utils
+from utils import utils
 import torch
 from torch.autograd import Variable
 import h5py

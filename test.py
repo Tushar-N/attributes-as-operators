@@ -53,27 +53,27 @@ args = parser.parse_args()
 
 def test(epoch):
 
-	model.eval()
+    model.eval()
 
-	accuracies = []
-	for idx, data in tqdm.tqdm(enumerate(testloader), total=len(testloader)):
+    accuracies = []
+    for idx, data in tqdm.tqdm(enumerate(testloader), total=len(testloader)):
 
-		data = [Variable(d, volatile=True).cuda() for d in data]
-		_, [attr_pred, obj_pred, _] = model(data)
-		
-		match_stats = utils.performance_stats(attr_pred, obj_pred, data)
-		accuracies.append(match_stats)
+        data = [Variable(d, volatile=True).cuda() for d in data]
+        _, [attr_pred, obj_pred, _] = model(data)
+        
+        match_stats = utils.performance_stats(attr_pred, obj_pred, data)
+        accuracies.append(match_stats)
 
-	accuracies = zip(*accuracies)
-	accuracies = map(torch.mean, map(torch.cat, accuracies))
-	attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc = accuracies
-	print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc)
+    accuracies = zip(*accuracies)
+    accuracies = map(torch.mean, map(torch.cat, accuracies))
+    attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc = accuracies
+    print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc)
 #----------------------------------------------------------------#
 
 if args.dataset == 'mitstates':
-	DSet = dset.MITStatesActivations
+    DSet = dset.MITStatesActivations
 elif args.dataset == 'zappos':
-	DSet = dset.UTZapposActivations
+    DSet = dset.UTZapposActivations
 
 trainset = DSet(root=args.data_dir, phase='train')
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
@@ -81,7 +81,7 @@ testset = DSet(root=args.data_dir, phase='test')
 testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
 
 model_select = {'visprodNN':models.VisualProductNN, 'redwine':models.RedWine,
-				'labelembed+':models.LabelEmbedPlus, 'attributeop': models.AttributeOperator}
+                'labelembed+':models.LabelEmbedPlus, 'attributeop': models.AttributeOperator}
 model = model_select[args.model](trainset, args)
 model.cuda()
 
