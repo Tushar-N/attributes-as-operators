@@ -27,6 +27,7 @@ parser.add_argument('--dataset', default='mitstates', help='mitstates|zappos')
 parser.add_argument('--data_dir', default='data/mit-states/', help='data root dir')
 parser.add_argument('--cv_dir', default='cv/tmp/', help='dir to save checkpoints to')
 parser.add_argument('--load', default=None, help='path to checkpoint to load from')
+parser.add_argument('--val', action='store_true', default=False, help='use the train/val splits instead of the train/test splits')
 
 # model parameters
 parser.add_argument('--model', default='visprodNN', help='visprodNN|redwine|labelembed+|attributeop')
@@ -116,14 +117,20 @@ if args.dataset == 'mitstates':
 elif args.dataset == 'zappos':
     DSet = dset.UTZapposActivations
 
-trainset = DSet(root=args.data_dir, phase='train')
+split = 'compositional-split-val' if args.val else 'compositional-split'
+trainset = DSet(root=args.data_dir, phase='train', split=split)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
-testset = DSet(root=args.data_dir, phase='test')
+testset = DSet(root=args.data_dir, phase='test', split=split)
 testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
 
-model_select = {'visprodNN':models.VisualProductNN, 'redwine':models.RedWine,
-                'labelembed+':models.LabelEmbedPlus, 'attributeop': models.AttributeOperator}
-model = model_select[args.model](trainset, args)
+if args.model == 'visprodNN':
+    model = models.VisualProductNN(trainset, args)
+elif args.model == 'redwine':
+    model = models.RedWine(trainset, args)
+elif args.model =='labelembed+':
+    model = models.LabelEmbedPlus(trainset, args)
+elif args.model =='attributeop':
+    model = models.AttributeOperator(trainset, args)
 
 if args.model=='redwine':
     params = filter(lambda p: p.requires_grad, model.parameters())
@@ -136,7 +143,6 @@ elif args.model=='attributeop':
 else:
     params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = optim.Adam(params, lr=args.lr, weight_decay=args.wd)
-
 
 model.cuda()
 print model

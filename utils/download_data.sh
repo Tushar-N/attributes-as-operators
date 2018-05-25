@@ -24,3 +24,6 @@ rename "s/ /_/g" mit-states/images/*
 # UT-Zappos50k
 unzip utzap.zip -d ut-zap50k/
 mv ut-zap50k/ut-zap50k-images ut-zap50k/images/
+
+# remove all zip files
+rm *.tar.gz *.zip

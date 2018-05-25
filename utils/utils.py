@@ -118,3 +118,28 @@ def generate_prediction_tensors(scores, dset, obj_truth, is_distance=False, sour
 
     return attr_pred, obj_pred, open_scores
 
+from sklearn.metrics import average_precision_score
+def score_mAP(scores, dataset):
+
+    torch.save([scores, dataset], 'aaa.t7')
+
+    pair_labels = zip(*dataset.data)[3]
+    pair_labels = torch.Tensor(pair_labels).long()
+
+    mAP = []
+    test_pairs = set(map(tuple, dataset.test_pairs.numpy().tolist()))
+    class_idx = [idx for idx in range(len(dataset.pairs)) if dataset.pairs[idx] in test_pairs]
+    print (len(class_idx))
+
+    for c in class_idx:
+        y_true = (pair_labels==c).float()
+        y_score = scores[:,c]
+        AP = average_precision_score(y_true.numpy(), y_score.numpy())
+        mAP.append(AP)
+
+    return np.mean(mAP)
+
+
+
+
+

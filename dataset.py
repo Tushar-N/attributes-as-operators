@@ -72,20 +72,21 @@ def imagenet_transform(phase):
 
 class CompositionDataset(tdata.Dataset):
 
-    def __init__(self, root, phase):
+    def __init__(self, root, phase, split='compositional-split'):
         self.root = root
         self.phase = phase
+        self.split = split
+
         self.feat_dim = None
         self.transform = imagenet_transform(phase)
-        meta_dir = root+'/compositional-split/'
 
-        self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split(meta_dir)
+        self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
         assert len(set(self.train_pairs)&set(self.test_pairs))==0, 'train and test are not mutually exclusive'
 
         self.images, self.train_data, self.test_data = self.get_split_info()
         self.data = self.train_data if self.phase=='train' else self.test_data
 
-        # convert all pair information into split index space
+        # convert all pair information into split index space -- CLEAN
         self.pairs = [(self.attrs.index(p[0]), self.objs.index(p[1])) for p in self.pairs]
         self.train_pairs = [(self.attrs.index(p[0]), self.objs.index(p[1])) for p in self.train_pairs]
         self.test_pairs = [(self.attrs.index(p[0]), self.objs.index(p[1])) for p in self.test_pairs]
@@ -112,16 +113,18 @@ class CompositionDataset(tdata.Dataset):
             self.inv_images[(attr, obj)].append(im_id)
 
         
-        # write out metadata
-        with open(meta_dir+'/objs.txt','w') as f:
+        # write out metadata -- CLEAN (Don't realy need)
+        with open('%s/%s/objs.txt'%(self.root, self.split), 'w') as f:
             f.write('\n'.join(self.objs))
-        with open(meta_dir+'/attrs.txt','w') as f:
+        with open('%s/%s/attrs.txt'%(self.root, self.split), 'w') as f:
             f.write('\n'.join(self.attrs))
-        with open(meta_dir+'/all_pairs.txt','w') as f:
+        with open('%s/%s/all_pairs.txt'%(self.root, self.split), 'w') as f:
             all_pairs = torch.cat([self.train_pairs, self.test_pairs], 0)
             all_pairs = ['%s %s'%(self.attrs[attr], self.objs[obj]) for attr, obj in all_pairs]
             f.write('\n'.join(all_pairs))
 
+
+        print (self.train_pairs.size(), self.test_pairs.size())
 
     # Overwrite in subclasses
     def get_split_info(self):
@@ -133,7 +136,7 @@ class CompositionDataset(tdata.Dataset):
         img = self.transform(img)
         return img
 
-    def parse_split(self, meta_dir):
+    def parse_split(self):
 
         def parse_pairs(pair_list):
             with open(pair_list,'r') as f:
@@ -143,8 +146,8 @@ class CompositionDataset(tdata.Dataset):
             attrs, objs = zip(*pairs)
             return attrs, objs, pairs
 
-        tr_attrs, tr_objs, tr_pairs = parse_pairs(meta_dir+'/train_pairs.txt')
-        ts_attrs, ts_objs, ts_pairs = parse_pairs(meta_dir+'/test_pairs.txt')
+        tr_attrs, tr_objs, tr_pairs = parse_pairs('%s/%s/train_pairs.txt'%(self.root, self.split))
+        ts_attrs, ts_objs, ts_pairs = parse_pairs('%s/%s/test_pairs.txt'%(self.root, self.split))
 
         all_attrs, all_objs =  sorted(list(set(tr_attrs+ts_attrs))), sorted(list(set(tr_objs+ts_objs)))    
         all_pairs = sorted(list(set(tr_pairs + ts_pairs)))
@@ -190,8 +193,8 @@ class CompositionDataset(tdata.Dataset):
 
 class MITStates(CompositionDataset):
 
-    def __init__(self, root, phase):
-        super(MITStates, self).__init__(root, phase)
+    def __init__(self, root, phase, split):
+        super(MITStates, self).__init__(root, phase, split)
         self.img_dir = self.root + '/images/'
 
     # retrieve dataset level info: all images, all attrs, all objs
@@ -229,11 +232,11 @@ class MITStates(CompositionDataset):
 
 class MITStatesActivations(MITStates):
 
-    def __init__(self, root, phase):
-        super(MITStatesActivations, self).__init__(root, phase)
+    def __init__(self, root, phase, split):
+        super(MITStatesActivations, self).__init__(root, phase, split)
 
         # precompute the activations
-        feat_file = 'data/mitstates_feats.h5'
+        feat_file = 'data/mit-states/feats.h5'
         if not os.path.exists(feat_file):
             generate_hdf5(feat_file, self)
 
@@ -252,7 +255,7 @@ class UTZappos(CompositionDataset):
 
 
     def __init__(self, root, phase):
-        super(UTZappos, self).__init__(root, phase)
+        super(UTZappos, self).__init__(root, phase, split)
         self.img_dir = self.root + '/images/'
     
     # retrieve dataset level info: all images, all attrs, all objs
@@ -292,10 +295,10 @@ class UTZappos(CompositionDataset):
 
 class UTZapposActivations(UTZappos):
 
-    def __init__(self, root, phase):
-        super(UTZapposActivations, self).__init__(root, phase)
+    def __init__(self, root, phase, split):
+        super(UTZapposActivations, self).__init__(root, phase, split)
 
-        feat_file = 'data/zappos_feats.h5'
+        feat_file = 'data/ut-zap50k/feats.h5'
         if not os.path.exists(feat_file):
             generate_hdf5(feat_file, self)
 
