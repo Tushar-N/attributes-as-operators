@@ -68,12 +68,11 @@ def test(epoch):
         scores.append(score_pred)
 
     scores = torch.cat(scores, 0) # (num_images, num_pairs)
-    mAP = utils.score_mAP(scores, testset)
 
     accuracies = zip(*accuracies)
     accuracies = map(torch.mean, map(torch.cat, accuracies))
     attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc = accuracies
-    print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f | mAP: %.3f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc, mAP)
+    print '(test) E: %d | A: %.3f | O: %.3f | Cl: %.3f | Op: %.4f | OrO: %.4f'%(epoch, attr_acc, obj_acc, closed_acc, open_acc, objoracle_acc)
 #----------------------------------------------------------------#
 
 if args.dataset == 'mitstates':
