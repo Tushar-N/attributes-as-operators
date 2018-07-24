@@ -18,6 +18,8 @@ The code is written and tested using Python (2.7) and PyTorch (v0.3.0). MATLAB i
 bash utils/download_data.sh
 ```
 
+**UT-Zappos Subset**: The UT-Zappos Materials subset, which we use as one of our datasets will be generated as part of the script. The subset is also available to download as raw images from [here](link/to/utzap/subset). 
+
 ## Training a model
 
 Models can be trained using the train script with parameters for the model (visprodNN, redwine, labelembed+, attributeop) and the various regularizers (aux, inv, comm, ant). For example, to train the LabelEmbed+ baseline on UT-Zappos:
@@ -62,7 +64,7 @@ If you find this repository useful in your own research, please consider citing:
 @article{nagarajan2018attrop,
   title={Attributes as Operators},
   author={Nagarajan, Tushar and Grauman, Kristen},
-  journal={arXiv preprint arXiv:1803.09851},
+  journal={ECCV},
   year={2018}
 }
 ```
