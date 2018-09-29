@@ -2,7 +2,10 @@
 *.pkl
 *.t7
 *.pyc 
+*.txt
 
-data/
 tensor-completion/
 cv/
+data/mit-states/
+data/glove/
+data/ut-zap50k
