@@ -9,7 +9,7 @@ Tushar Nagarajan and Kristen Grauman.
 Attributes as Operators [[arxiv]](https://arxiv.org/pdf/1803.09851.pdf)
 
 ## Prerequisites
-The code is written and tested using Python (2.7) and PyTorch (v0.3.0). MATLAB is required for the AnalogousAttr models only.
+The code is written and tested using Python (3.6) and PyTorch (v0.4.0). MATLAB is required for the AnalogousAttr models only.
 
 **Packages**: Install using `pip install -r utils/requirements.txt`
 
@@ -18,7 +18,7 @@ The code is written and tested using Python (2.7) and PyTorch (v0.3.0). MATLAB i
 bash utils/download_data.sh
 ```
 
-**UT-Zappos Subset**: The UT-Zappos Materials subset, which we use as one of our datasets will be generated as part of the script. The subset is also available to download as raw images from [here](link/to/utzap/subset). 
+**UT-Zappos Subset**: The UT-Zappos Materials subset, which we use as one of our datasets will be generated as part of the script. The subset is also available to download as raw images from [here](https://www.cs.utexas.edu/~tushar/attribute-ops/ut-zap50k-materials.zip). 
 
 ## Training a model
 
@@ -68,3 +68,12 @@ If you find this repository useful in your own research, please consider citing:
   year={2018}
 }
 ```
+
+## Changelog
+
+- 9/28:
+Upgraded to python 3.6, PyTorch 0.4.  
+Re-arranged UT-Zap50k to resemble MITStates' folder structure.  
+There's a chance some things have broken as a result of the migration, but the main models work as advertised.
+
+

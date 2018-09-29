@@ -1,6 +1,5 @@
 import numpy as np
 import tqdm
-import cPickle as pickle
 import dataset as dset
 import os
 from utils import utils
@@ -49,18 +48,18 @@ def generate_svms():
     Y = [(train_attrs==attr).astype(np.int) for attr in range(len(dataset.attrs))]
     attr_clfs = Parallel(n_jobs=32, verbose=16)(delayed(train_svm)(Y[attr]) for attr in range(len(dataset.attrs)))
     for attr, clf in enumerate(attr_clfs):
-        print attr, dataset.attrs[attr]
-        print 'params:', clf.best_params_
-        print '-'*30
-        pickle.dump(clf.best_estimator_, open('%s/svm/attr_%d'%(args.data_dir, attr), 'wb'), 2)
+        print (attr, dataset.attrs[attr])
+        print ('params:', clf.best_params_)
+        print ('-'*30)
+        torch.save(clf.best_estimator_, '%s/svm/attr_%d'%(args.data_dir, attr))
 
     Y = [(train_objs==obj).astype(np.int) for obj in range(len(dataset.objs))]
     obj_clfs = Parallel(n_jobs=32, verbose=16)(delayed(train_svm)(Y[obj]) for obj in range(len(dataset.objs)))
     for obj, clf in enumerate(obj_clfs):
-        print obj, dataset.objs[obj]
-        print 'params:', clf.best_params_
-        print '-'*30
-        pickle.dump(clf.best_estimator_, open('%s/svm/obj_%d'%(args.data_dir, obj), 'wb'), 2)
+        print (obj, dataset.objs[obj])
+        print ('params:', clf.best_params_)
+        print ('-'*30)
+        torch.save(clf.best_estimator_, '%s/svm/obj_%d'%(args.data_dir, obj))
 
 
     Y, Y_attr, sample_weight = [], [], []
@@ -79,13 +78,13 @@ def generate_svms():
     pair_clfs = Parallel(n_jobs=32, verbose=16)(delayed(train_svm)(Y[pair]) for pair in range(len(dataset.train_pairs)))
     for idx, (attr, obj) in enumerate(dataset.train_pairs):
         clf = pair_clfs[idx]
-        print dataset.attrs[attr], dataset.objs[obj]
+        print (dataset.attrs[attr], dataset.objs[obj])
 
         try:
-            print 'params:', clf.best_params_
-            pickle.dump(clf.best_estimator_, open('%s/svm/pair_%d_%d'%(args.data_dir, attr, obj),'wb'), 2)
+            print ('params:', clf.best_params_)
+            torch.save(clf.best_estimator_, '%s/svm/pair_%d_%d'%(args.data_dir, attr, obj))
         except:
-            print 'FAILED! #positive:', Y[idx].sum(), len(Y[idx])
+            print ('FAILED! #positive:', Y[idx].sum(), len(Y[idx]))
 
     return
 
@@ -93,12 +92,12 @@ def make_svm_tensor():
     subs, vals, size = [], [], (len(dataset.attrs), len(dataset.objs), X.shape[1])
     fullsubs, fullvals = [], []
     composite_clfs = glob.glob('%s/svm/pair*'%args.data_dir)
-    print '%d composite classifiers found'%(len(composite_clfs))
+    print ('%d composite classifiers found'%(len(composite_clfs)))
     for clf in tqdm.tqdm(composite_clfs):
         _, attr, obj = os.path.basename(clf).split('_')
         attr, obj = int(attr), int(obj)
 
-        clf = pickle.load(open(clf,'rb'))
+        clf = torch.load(clf)
         weight = clf.coef_.squeeze()
         for i in range(len(weight)):
             subs.append((attr, obj, i))
@@ -112,12 +111,12 @@ def make_svm_tensor():
     fullsubs, fullvals = np.array(fullsubs), np.ones(len(fullsubs)).reshape(-1,1)
     savedat = {'subs':subs, 'vals':vals, 'size':size, 'fullsubs':fullsubs, 'fullvals':fullvals}
     scipy.io.savemat('tensor-completion/incomplete/%s.mat'%args.dataset, savedat)
-    print subs.shape, vals.shape, size
+    print (subs.shape, vals.shape, size)
 
 def evaluate_svms():
 
-    attr_clfs = [pickle.load(open('%s/svm/attr_%d'%(args.data_dir, attr))) for attr in range(len(dataset.attrs))]
-    obj_clfs = [pickle.load(open('%s/svm/obj_%d'%(args.data_dir, obj))) for obj in range(len(dataset.objs))]
+    attr_clfs = [torch.load('%s/svm/attr_%d'%(args.data_dir, attr)) for attr in range(len(dataset.attrs))]
+    obj_clfs = [torch.load('%s/svm/obj_%d'%(args.data_dir, obj)) for obj in range(len(dataset.objs))]
 
     # Calibrate all classifiers first
     Y = [(train_attrs==attr).astype(np.int) for attr in range(len(dataset.attrs))]
@@ -154,7 +153,7 @@ def evaluate_svms():
     x = [None, Variable(torch.from_numpy(test_attrs)).long(), Variable(torch.from_numpy(test_objs)).long(), Variable(torch.from_numpy(test_pairs)).long()]
     attr_pred, obj_pred, _ = utils.generate_prediction_tensors([attr_pred, obj_pred], dataset, x[2].data, source='classification')
     attr_match, obj_match, zsl_match, gzsl_match, fixobj_match = utils.performance_stats(attr_pred, obj_pred, x)
-    print attr_match.mean(), obj_match.mean(), zsl_match.mean(), gzsl_match.mean(), fixobj_match.mean()
+    print (attr_match.mean(), obj_match.mean(), zsl_match.mean(), gzsl_match.mean(), fixobj_match.mean())
 
 def evaluate_tensorcompletion():
 
@@ -172,14 +171,14 @@ def evaluate_tensorcompletion():
     tr_clfs, tr_nz_idx, tr_vals = parse_tensor(tr_file)
     ts_clfs, ts_nz_idx, ts_vals = parse_tensor(ts_file)
 
-    print tr_vals.min(), tr_vals.max(), tr_vals.mean()
-    print ts_vals.min(), ts_vals.max(), ts_vals.mean()
+    print (tr_vals.min(), tr_vals.max(), tr_vals.mean())
+    print (ts_vals.min(), ts_vals.max(), ts_vals.mean())
 
-    print 'Completed Tensor: %s'%args.completed
+    print ('Completed Tensor: %s'%args.completed)
 
     # see train recon error
     err = 1.0*((tr_clfs[tr_nz_idx[0], tr_nz_idx[1], tr_nz_idx[2]]-ts_clfs[tr_nz_idx[0], tr_nz_idx[1], tr_nz_idx[2]])**2).sum()/(len(tr_vals))
-    print 'recon error:', err
+    print ('recon error:', err)
 
     # Create and scale classifiers for each pair
     clfs = {}
@@ -209,7 +208,7 @@ def evaluate_tensorcompletion():
     x = [None, Variable(torch.from_numpy(test_attrs)).long(), Variable(torch.from_numpy(test_objs)).long(), Variable(torch.from_numpy(test_pairs)).long()]
     attr_pred, obj_pred, _ = utils.generate_prediction_tensors(scores, dataset, x[2].data, source='manifold')
     attr_match, obj_match, zsl_match, gzsl_match, fixobj_match = utils.performance_stats(attr_pred, obj_pred, x)
-    print attr_match.mean(), obj_match.mean(), zsl_match.mean(), gzsl_match.mean(), fixobj_match.mean()
+    print (attr_match.mean(), obj_match.mean(), zsl_match.mean(), gzsl_match.mean(), fixobj_match.mean())
 
 
 
@@ -226,8 +225,8 @@ test_idx, test_attrs, test_objs, test_pairs = map(np.array, zip(*dataset.test_da
 X = dataset.activations.numpy()
 X_train, X_test = X[train_idx,:], X[test_idx,:]
 
-print len(dataset.attrs), len(dataset.objs), len(dataset.pairs)
-print X_train.shape, X_test.shape
+print (len(dataset.attrs), len(dataset.objs), len(dataset.pairs))
+print (X_train.shape, X_test.shape)
 
 if args.generate:
     generate_svms()

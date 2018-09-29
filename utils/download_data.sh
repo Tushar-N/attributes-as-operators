@@ -1,5 +1,4 @@
 # Download everything
-mkdir data
 wget --show-progress -O data/attr-ops-data.tar.gz https://www.cs.utexas.edu/~tushar/attribute-ops/attr-ops-data.tar.gz
 wget --show-progress -O data/mitstates.zip http://wednesday.csail.mit.edu/joseph_result/state_and_transformation/release_dataset.zip
 wget --show-progress -O data/utzap.zip http://vision.cs.utexas.edu/projects/finegrained/utzap50k/ut-zap50k-images.zip
@@ -23,7 +22,10 @@ rename "s/ /_/g" mit-states/images/*
 
 # UT-Zappos50k
 unzip utzap.zip -d ut-zap50k/
-mv ut-zap50k/ut-zap50k-images ut-zap50k/images/
+mv ut-zap50k/ut-zap50k-images ut-zap50k/_images/
 
-# remove all zip files
-rm *.tar.gz *.zip
+cd ..
+python utils/reorganize_utzap.py
+
+# remove all zip files and temporary files
+rm -r data/attr-ops-data.tar.gz data/mitstates.zip data/utzap.zip data/ut-zap50k/_images
