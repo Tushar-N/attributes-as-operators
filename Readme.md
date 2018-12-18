@@ -57,6 +57,8 @@ python svm.py --dataset mitstates --data_dir data/mit-states/ --evaltf --complet
 python svm.py --dataset zappos --data_dir data/ut-zap50k/ --evaltf --completed tensor-completion/completed/zappos_100_50.mat
 ```
 
+For a discussion about the evaluation metric, please see [this issue](https://github.com/Tushar-N/attributes-as-operators/issues/6).
+
 ## Cite
 
 If you find this repository useful in your own research, please consider citing:
