@@ -1,5 +1,5 @@
 # Download everything
-wget --show-progress -O data/attr-ops-data.tar.gz https://www.cs.utexas.edu/~tushar/attribute-ops/attr-ops-data.tar.gz
+wget --show-progress -O data/attr-ops-data.tar.gz https://utexas.box.com/shared/static/h7ckk2gx5ykw53h8o641no8rdyi7185g.gz
 wget --show-progress -O data/mitstates.zip http://wednesday.csail.mit.edu/joseph_result/state_and_transformation/release_dataset.zip
 wget --show-progress -O data/utzap.zip http://vision.cs.utexas.edu/projects/finegrained/utzap50k/ut-zap50k-images.zip
 wget --show-progress -O tensor-completion/bptf.tar.bz https://www.cs.cmu.edu/~lxiong/bptf/export_bptf.tar.bz
